@@ -1,0 +1,28 @@
+node_modules/
+.env
+.env*.local
+postgres_data/
+
+# Next.js
+.next/
+out/
+
+# v0 sandbox internal files
+__v0_runtime_loader.js
+__v0_devtools.tsx
+__v0_jsx-dev-runtime.ts
+.snowflake/
+.v0-trash/
+.vercel/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# NGROK
+ngrok.exe
+ngrok.log
+
+# Build artifacts
+dist/
+build/

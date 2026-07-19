@@ -1,0 +1,38 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: proteus-postgres
+    restart: unless-stopped
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-proteus_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-proteus_pass_2026}
+      POSTGRES_DB: ${POSTGRES_DB:-proteus_protection_db}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init-db:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-proteus_user} -d ${POSTGRES_DB:-proteus_protection_db}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  app:
+    build: .
+    container_name: proteus-app
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-proteus_user}:${POSTGRES_PASSWORD:-proteus_pass_2026}@postgres:5432/${POSTGRES_DB:-proteus_protection_db}
+      - JWT_SECRET=${JWT_SECRET:-proteus_jwt_secret_2026_secure_key}
+      - NODE_ENV=production
+      - HOSTNAME=0.0.0.0
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+volumes:
+  postgres_data:
+    driver: local
