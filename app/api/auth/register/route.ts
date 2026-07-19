@@ -39,6 +39,7 @@ export async function POST(request: Request) {
     return authResponse(user, token)
   } catch (e) {
     console.error('Register error:', e)
+    console.error('DATABASE_URL host:', process.env.DATABASE_URL?.split('@')[1]?.split('/')[0])
     return NextResponse.json({ error: 'Error del servidor' }, { status: 500 })
   }
 }
