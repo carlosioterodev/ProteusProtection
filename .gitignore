@@ -26,3 +26,5 @@ ngrok.log
 # Build artifacts
 dist/
 build/
+
+.vercel

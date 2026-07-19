@@ -5,7 +5,7 @@ import { animate } from 'animejs'
 import { MessageCircle, X } from 'lucide-react'
 import { sileo } from 'sileo'
 
-const WHATSAPP_NUMBER = '5491100000000'
+const WHATSAPP_NUMBER = '50763608997'
 const WHATSAPP_MESSAGE = 'Hola! Me interesa conocer más sobre Proteus Protection.'
 
 export function WhatsAppButton() {
