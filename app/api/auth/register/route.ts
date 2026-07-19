@@ -37,7 +37,8 @@ export async function POST(request: Request) {
     const user = result.rows[0]
     const token = signToken(user.id, user.email)
     return authResponse(user, token)
-  } catch {
+  } catch (e) {
+    console.error('Register error:', e)
     return NextResponse.json({ error: 'Error del servidor' }, { status: 500 })
   }
 }
