@@ -1,12 +1,10 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { useRouter } from 'next/navigation'
 import { ProteusDashboard } from '@/components/dashboard/proteus-dashboard'
 import { sileo } from 'sileo'
 
 export default function DashboardPage() {
-  const router = useRouter()
   const [user, setUser] = useState<{ id: number; name: string; email: string } | null>(null)
   const [loading, setLoading] = useState(true)
 
@@ -22,9 +20,9 @@ export default function DashboardPage() {
       })
       .catch(() => {
         sileo.error({ title: 'Sesión expirada', description: 'Inicia sesión nuevamente' })
-        router.push('/login')
+        window.location.href = '/login'
       })
-  }, [router])
+  }, [])
 
   if (loading) {
     return (

@@ -78,7 +78,7 @@ export default function LoginPage() {
       }
 
       sileo.success({ title: mode === 'login' ? '¡Bienvenido de vuelta!' : '¡Cuenta creada!', position: 'top-right' })
-      setTimeout(() => router.push('/dashboard'), 600)
+      setTimeout(() => { window.location.href = '/dashboard' }, 600)
     } catch {
       sileo.error({ title: 'Error de conexión', description: 'No se pudo conectar al servidor', position: 'top-right' })
       setLoading(false)
