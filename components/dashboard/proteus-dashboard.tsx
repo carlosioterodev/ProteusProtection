@@ -22,6 +22,8 @@ import { OptimizationPanel } from './optimization-panel'
 import { WhatsAppButton } from '@/components/whatsapp-button'
 import { cn } from '@/lib/utils'
 import { sileo } from 'sileo'
+import { PlanProvider, usePlan } from './plan-provider'
+import { PlanBadge } from './plan-badge'
 
 interface DashboardUser {
   id: number
@@ -39,11 +41,13 @@ interface PasswordEntry {
   updatedAt: string
 }
 
-const navItems = [
-  { id: 'resumen', label: 'Resumen', icon: LayoutDashboard },
-  { id: 'contrasenas', label: 'Contraseñas', icon: KeyRound },
-  { id: 'optimizacion', label: 'Optimización', icon: Gauge },
-  { id: 'ajustes', label: 'Ajustes', icon: Settings },
+const allNavItems = [
+  { id: 'resumen', label: 'Resumen', icon: LayoutDashboard, featureKey: null },
+  { id: 'contrasenas', label: 'Contraseñas', icon: KeyRound, featureKey: 'vault' },
+  { id: 'optimizacion', label: 'Optimización', icon: Gauge, featureKey: 'tune' },
+  { id: 'shield', label: 'Protección', icon: ShieldCheck, featureKey: 'shield' },
+  { id: 'guard', label: 'Privacidad', icon: Shield, featureKey: 'guard' },
+  { id: 'ajustes', label: 'Ajustes', icon: Settings, featureKey: null },
 ]
 
 function todayLabel() {
@@ -55,7 +59,20 @@ function todayLabel() {
 }
 
 export function ProteusDashboard({ user }: { user: DashboardUser }) {
+  return (
+    <PlanProvider>
+      <ProteusDashboardInner user={user} />
+    </PlanProvider>
+  )
+}
+
+function ProteusDashboardInner({ user }: { user: DashboardUser }) {
   const router = useRouter()
+  const { isFeatureEnabled, plan } = usePlan()
+
+  const navItems = allNavItems.filter(
+    (item) => !item.featureKey || isFeatureEnabled(item.featureKey),
+  )
   const [passwords, setPasswords] = useState<PasswordEntry[]>([])
   const [lastOptimization, setLastOptimization] = useState('Nunca')
   const [active, setActive] = useState('resumen')
@@ -197,12 +214,9 @@ export function ProteusDashboard({ user }: { user: DashboardUser }) {
         )
       })}
       <div className="mt-auto rounded-lg border border-border bg-background/40 p-4">
-        <div className="flex items-center gap-2 text-success">
-          <ShieldCheck className="size-4" aria-hidden="true" />
-          <span className="text-xs font-semibold">Plan Pro activo</span>
-        </div>
+        <PlanBadge />
         <p className="mt-1 text-xs text-muted-foreground">
-          Protección avanzada y respaldo cifrado incluidos.
+          {plan?.name || 'Plan gratuito'}
         </p>
         <div className="mt-3 flex items-center gap-2 border-t border-border pt-3">
           <User className="size-3.5 text-muted-foreground" />
@@ -365,7 +379,7 @@ export function ProteusDashboard({ user }: { user: DashboardUser }) {
                   <div className="flex items-center justify-between rounded-lg border border-border p-4">
                     <div>
                       <p className="text-sm font-medium text-foreground">Plan</p>
-                      <p className="text-xs text-success">Pro — Activo</p>
+                      <p className="text-xs text-success">{plan?.name || 'Gratuito'} — Activo</p>
                     </div>
                   </div>
                   <button
