@@ -8,15 +8,30 @@ import { Reveal } from '@/components/landing/reveal'
 const footerLinks = [
   {
     title: 'Producto',
-    links: ['Proteus Shield', 'Proteus Vault', 'Proteus Tune', 'Proteus Guard'],
+    links: [
+      { name: 'Proteus Shield', href: '#productos' },
+      { name: 'Proteus Vault', href: '#productos' },
+      { name: 'Proteus Tune', href: '#productos' },
+      { name: 'Proteus Guard', href: '#productos' },
+    ],
   },
   {
     title: 'Empresa',
-    links: ['Sobre nosotros', 'Blog', 'Carreras', 'Prensa'],
+    links: [
+      { name: 'Sobre nosotros', href: '/empresa/sobre-nosotros' },
+      { name: 'Blog', href: '#' },
+      { name: 'Carreras', href: '/empresa/carreras' },
+      { name: 'Prensa', href: '#' },
+    ],
   },
   {
     title: 'Soporte',
-    links: ['Centro de ayuda', 'Contacto', 'Estado del servicio', 'Comunidad'],
+    links: [
+      { name: 'Centro de ayuda', href: '#' },
+      { name: 'Contacto', href: 'mailto:carlosivanoteroespinosa@gmail.com' },
+      { name: 'Estado del servicio', href: '#' },
+      { name: 'Comunidad', href: '#' },
+    ],
   },
 ]
 
@@ -80,13 +95,29 @@ export function CtaFooter() {
                 <h3 className="text-sm font-semibold">{col.title}</h3>
                 <ul className="mt-4 space-y-2.5">
                   {col.links.map((link) => (
-                    <li key={link}>
-                      <a
-                        href="#"
-                        className="text-sm text-muted-foreground transition-colors hover:text-foreground"
-                      >
-                        {link}
-                      </a>
+                    <li key={link.name}>
+                      {link.href.startsWith('/') ? (
+                        <Link
+                          href={link.href}
+                          className="text-sm text-muted-foreground transition-colors hover:text-foreground"
+                        >
+                          {link.name}
+                        </Link>
+                      ) : link.href.startsWith('mailto:') ? (
+                        <a
+                          href={link.href}
+                          className="text-sm text-muted-foreground transition-colors hover:text-foreground"
+                        >
+                          {link.name}
+                        </a>
+                      ) : (
+                        <a
+                          href={link.href}
+                          className="text-sm text-muted-foreground transition-colors hover:text-foreground"
+                        >
+                          {link.name}
+                        </a>
+                      )}
                     </li>
                   ))}
                 </ul>

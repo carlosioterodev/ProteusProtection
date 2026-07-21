@@ -1,11 +1,18 @@
 'use client'
 
-import Link from 'next/link'
-import { ArrowRight } from 'lucide-react'
+import { useState } from 'react'
+import { ArrowRight, ChevronDown, ChevronUp } from 'lucide-react'
 import { products } from '@/lib/landing-data'
 import { Reveal } from '@/components/landing/reveal'
+import { cn } from '@/lib/utils'
 
 export function Products() {
+  const [expandedId, setExpandedId] = useState<string | null>(null)
+
+  const toggleExpand = (id: string) => {
+    setExpandedId((prev) => (prev === id ? null : id))
+  }
+
   return (
     <section id="productos" className="relative py-20 md:py-28">
       <div className="mx-auto max-w-6xl px-4 md:px-6">
@@ -23,12 +30,16 @@ export function Products() {
         <div className="mt-14 grid gap-5 sm:grid-cols-2">
           {products.map((product, i) => {
             const Icon = product.icon
+            const isExpanded = expandedId === product.id
             return (
               <Reveal
                 key={product.id}
                 as="article"
                 delay={i * 90}
-                className="group relative flex flex-col rounded-2xl border border-border bg-card p-6 transition-colors hover:border-primary/40"
+                className={cn(
+                  'group relative flex flex-col rounded-2xl border border-border bg-card p-6 transition-all duration-300 hover:border-primary/40',
+                  isExpanded && 'border-primary/50 sm:col-span-2'
+                )}
               >
                 {product.tag && (
                   <span className="absolute right-5 top-5 rounded-full bg-primary/15 px-2.5 py-1 text-[11px] font-medium text-primary ring-1 ring-primary/30">
@@ -47,17 +58,38 @@ export function Products() {
                   {product.description}
                 </p>
 
+                {/* Expanded content */}
+                {isExpanded && (
+                  <div className="mt-4 border-t border-border pt-4">
+                    <p className="text-sm leading-relaxed text-muted-foreground">
+                      {product.detailedDescription}
+                    </p>
+                    <ul className="mt-4 space-y-2">
+                      {product.features.map((feature) => (
+                        <li key={feature} className="flex items-start gap-2 text-sm">
+                          <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-primary" />
+                          <span className="text-muted-foreground">{feature}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+
                 <div className="mt-5 flex items-center justify-between border-t border-border pt-4">
                   <span className="text-xs font-medium text-foreground">
                     {product.highlight}
                   </span>
-                  <Link
-                    href="/dashboard"
+                  <button
+                    onClick={() => toggleExpand(product.id)}
                     className="inline-flex items-center gap-1 text-sm font-medium text-primary transition-colors hover:text-primary/80"
                   >
-                    Explorar
-                    <ArrowRight className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-0.5" />
-                  </Link>
+                    {isExpanded ? 'Cerrar' : 'Explorar'}
+                    {isExpanded ? (
+                      <ChevronUp className="h-4 w-4 transition-transform duration-200" />
+                    ) : (
+                      <ChevronDown className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-0.5" />
+                    )}
+                  </button>
                 </div>
               </Reveal>
             )

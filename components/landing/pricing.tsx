@@ -1,13 +1,21 @@
 'use client'
 
+import { useState } from 'react'
 import Link from 'next/link'
-import { Check } from 'lucide-react'
+import { Check, Info } from 'lucide-react'
 import { plans } from '@/lib/landing-data'
 import { ActionButton } from '@/components/ui/action-button'
 import { Reveal } from '@/components/landing/reveal'
 import { cn } from '@/lib/utils'
 
 export function Pricing() {
+  const [selectedPlan, setSelectedPlan] = useState<string | null>(null)
+  const [showTrialInfo, setShowTrialInfo] = useState<string | null>(null)
+
+  const handlePlanSelect = (planName: string) => {
+    setSelectedPlan((prev) => (prev === planName ? null : planName))
+  }
+
   return (
     <section id="precios" className="relative py-20 md:py-28">
       <div className="mx-auto max-w-6xl px-4 md:px-6">
@@ -28,10 +36,11 @@ export function Pricing() {
               key={plan.name}
               delay={i * 100}
               className={cn(
-                'relative flex flex-col rounded-2xl border bg-card p-6',
+                'relative flex flex-col rounded-2xl border bg-card p-6 transition-all duration-300',
                 plan.featured
                   ? 'border-primary/50 shadow-[0_0_40px_-12px_var(--primary)]'
                   : 'border-border',
+                selectedPlan === plan.name && 'border-primary/70 ring-2 ring-primary/20'
               )}
             >
               {plan.featured && (
@@ -54,6 +63,28 @@ export function Pricing() {
                 </span>
               </div>
 
+              {/* Trial info toggle */}
+              <div className="mt-3">
+                <button
+                  onClick={() => setShowTrialInfo((prev) => (prev === plan.name ? null : plan.name))}
+                  className="inline-flex items-center gap-1 text-xs text-primary/80 transition-colors hover:text-primary"
+                >
+                  <Info className="h-3 w-3" />
+                  {plan.trialDays} días de prueba gratis
+                </button>
+                {showTrialInfo === plan.name && (
+                  <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
+                    Prueba gratuita de {plan.trialDays} días. Sin tarjeta de crédito requerida.
+                    Cancela en cualquier momento durante el periodo de prueba.
+                  </p>
+                )}
+              </div>
+
+              {/* Detailed description */}
+              <p className="mt-4 text-sm leading-relaxed text-muted-foreground">
+                {plan.detailedDescription}
+              </p>
+
               <ul className="mt-6 flex-1 space-y-3">
                 {plan.features.map((f) => (
                   <li key={f} className="flex items-start gap-2.5 text-sm">
@@ -63,15 +94,23 @@ export function Pricing() {
                 ))}
               </ul>
 
-              <Link href="/dashboard" className="mt-7">
-                <ActionButton
-                  variant={plan.featured ? 'primary' : 'secondary'}
-                  size="lg"
-                  className="w-full"
-                >
-                  {plan.cta}
-                </ActionButton>
-              </Link>
+              <div className="mt-7 space-y-2">
+                <Link href="/dashboard" className="block">
+                  <ActionButton
+                    variant={plan.featured ? 'primary' : 'secondary'}
+                    size="lg"
+                    className="w-full"
+                    onClick={() => handlePlanSelect(plan.name)}
+                  >
+                    {selectedPlan === plan.name ? 'Seleccionado' : plan.cta}
+                  </ActionButton>
+                </Link>
+                {selectedPlan === plan.name && (
+                  <p className="text-center text-xs text-muted-foreground">
+                    Prueba de {plan.trialDays} días iniciada
+                  </p>
+                )}
+              </div>
             </Reveal>
           ))}
         </div>
