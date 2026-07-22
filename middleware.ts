@@ -1,14 +1,49 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
+import { verifyToken } from '@/lib/auth'
+
+const ADMIN_EMAIL = process.env.ADMIN_EMAIL || ''
 
 export function middleware(request: NextRequest) {
   const token = request.cookies.get('proteus_token')?.value
-  const isAuthPage = request.nextUrl.pathname === '/login'
-  const isDashboard = request.nextUrl.pathname.startsWith('/dashboard')
-  const isApiAuth = request.nextUrl.pathname.startsWith('/api/auth')
+  const pathname = request.nextUrl.pathname
+
+  const isAuthPage = pathname === '/login'
+  const isDashboard = pathname.startsWith('/dashboard')
+  const isAdmin = pathname.startsWith('/admin')
+  const isAdminApi = pathname.startsWith('/api/admin')
+  const isApiAuth = pathname.startsWith('/api/auth')
 
   if (isApiAuth) return NextResponse.next()
 
+  // Admin route protection
+  if (isAdmin || isAdminApi) {
+    if (!token) {
+      if (isAdmin) {
+        return NextResponse.redirect(new URL('/login', request.url))
+      }
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    try {
+      const payload = verifyToken(token)
+      if (payload.email !== ADMIN_EMAIL) {
+        if (isAdmin) {
+          return NextResponse.redirect(new URL('/dashboard', request.url))
+        }
+        return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+      }
+    } catch {
+      if (isAdmin) {
+        return NextResponse.redirect(new URL('/login', request.url))
+      }
+      return NextResponse.json({ error: 'Invalid token' }, { status: 401 })
+    }
+
+    return NextResponse.next()
+  }
+
+  // Dashboard protection
   if (isDashboard && !token) {
     return NextResponse.redirect(new URL('/login', request.url))
   }
@@ -21,5 +56,5 @@ export function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/dashboard/:path*', '/login'],
+  matcher: ['/dashboard/:path*', '/admin/:path*', '/api/admin/:path*', '/login'],
 }
