@@ -44,28 +44,49 @@ export async function GET(request: Request) {
       paramIndex++
     }
 
-    const countResult = await pool.query(
-      `SELECT COUNT(*) as count
-       FROM users u
-       LEFT JOIN subscriptions s ON s.user_id = u.id AND s.status IN ('trialing', 'active')
-       LEFT JOIN plans p ON p.id = s.plan_id
-       ${whereClause}`,
-      params
-    )
+    let countResult, usersResult
 
-    const usersResult = await pool.query(
-      `SELECT u.id, u.name, u.email, u.created_at,
-              p.name as plan_name, p.slug as plan_slug,
-              s.status as subscription_status, s.trial_ends_at, s.current_period_end,
-              (SELECT COUNT(*) FROM saved_passwords sp WHERE sp.user_id = u.id) as password_count
-       FROM users u
-       LEFT JOIN subscriptions s ON s.user_id = u.id AND s.status IN ('trialing', 'active')
-       LEFT JOIN plans p ON p.id = s.plan_id
-       ${whereClause}
-       ORDER BY u.created_at DESC
-       LIMIT $${paramIndex} OFFSET $${paramIndex + 1}`,
-      [...params, limit, offset]
-    )
+    try {
+      countResult = await pool.query(
+        `SELECT COUNT(*) as count
+         FROM users u
+         LEFT JOIN subscriptions s ON s.user_id = u.id AND s.status IN ('trialing', 'active')
+         LEFT JOIN plans p ON p.id = s.plan_id
+         ${whereClause}`,
+        params
+      )
+
+      usersResult = await pool.query(
+        `SELECT u.id, u.name, u.email, u.created_at,
+                p.name as plan_name, p.slug as plan_slug,
+                s.status as subscription_status, s.trial_ends_at, s.current_period_end,
+                (SELECT COUNT(*) FROM saved_passwords sp WHERE sp.user_id = u.id) as password_count
+         FROM users u
+         LEFT JOIN subscriptions s ON s.user_id = u.id AND s.status IN ('trialing', 'active')
+         LEFT JOIN plans p ON p.id = s.plan_id
+         ${whereClause}
+         ORDER BY u.created_at DESC
+         LIMIT $${paramIndex} OFFSET $${paramIndex + 1}`,
+        [...params, limit, offset]
+      )
+    } catch {
+      countResult = await pool.query(
+        `SELECT COUNT(*) as count FROM users u ${whereClause}`,
+        params
+      )
+
+      usersResult = await pool.query(
+        `SELECT u.id, u.name, u.email, u.created_at,
+                NULL as plan_name, NULL as plan_slug,
+                NULL as subscription_status, NULL as trial_ends_at, NULL as current_period_end,
+                0 as password_count
+         FROM users u
+         ${whereClause}
+         ORDER BY u.created_at DESC
+         LIMIT $${paramIndex} OFFSET $${paramIndex + 1}`,
+        [...params, limit, offset]
+      )
+    }
 
     const total = Number(countResult.rows[0].count)
 
