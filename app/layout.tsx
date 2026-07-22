@@ -1,6 +1,7 @@
 import { Analytics } from '@vercel/analytics/next'
 import type { Metadata, Viewport } from 'next'
 import { Geist, Geist_Mono } from 'next/font/google'
+import { AnalyticsTracker } from '@/components/analytics/analytics-tracker'
 import { SileoToaster } from '@/components/sileo-toaster'
 import './globals.css'
 
@@ -36,6 +37,7 @@ export default function RootLayout({
       <body className="font-sans antialiased">
         {children}
         <SileoToaster />
+        <AnalyticsTracker />
         {process.env.NODE_ENV === 'production' && <Analytics />}
       </body>
     </html>
