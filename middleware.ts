@@ -1,8 +1,18 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
-import { verifyToken } from '@/lib/auth'
 
 const ADMIN_EMAIL = process.env.ADMIN_EMAIL || ''
+
+function decodeJwtPayload(token: string): { userId?: number; email?: string } | null {
+  try {
+    const parts = token.split('.')
+    if (parts.length !== 3) return null
+    const payload = JSON.parse(atob(parts[1].replace(/-/g, '+').replace(/_/g, '/')))
+    return payload
+  } catch {
+    return null
+  }
+}
 
 export function middleware(request: NextRequest) {
   const token = request.cookies.get('proteus_token')?.value
@@ -25,19 +35,12 @@ export function middleware(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    try {
-      const payload = verifyToken(token)
-      if (payload.email !== ADMIN_EMAIL) {
-        if (isAdmin) {
-          return NextResponse.redirect(new URL('/dashboard', request.url))
-        }
-        return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
-      }
-    } catch {
+    const payload = decodeJwtPayload(token)
+    if (!payload || payload.email !== ADMIN_EMAIL) {
       if (isAdmin) {
-        return NextResponse.redirect(new URL('/login', request.url))
+        return NextResponse.redirect(new URL('/dashboard', request.url))
       }
-      return NextResponse.json({ error: 'Invalid token' }, { status: 401 })
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 
     return NextResponse.next()
