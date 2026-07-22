@@ -19,13 +19,28 @@ interface AdminAnalytics {
 
 export default function AdminOverviewPage() {
   const [data, setData] = useState<AdminAnalytics | null>(null)
+  const [error, setError] = useState(false)
 
   useEffect(() => {
     fetch('/api/admin/analytics?period=30d&group=page')
-      .then((res) => res.json())
+      .then((res) => {
+        if (!res.ok) throw new Error('API error')
+        return res.json()
+      })
       .then(setData)
-      .catch(() => {})
+      .catch(() => setError(true))
   }, [])
+
+  if (error) {
+    return (
+      <section className="rounded-xl border border-border bg-card p-6">
+        <h2 className="text-base font-semibold text-card-foreground">Error</h2>
+        <p className="mt-2 text-sm text-muted-foreground">
+          No se pudieron cargar los datos. Verifica que la tabla <code>page_views</code> exista en la base de datos y que el <code>ADMIN_EMAIL</code> coincida con tu email de usuario.
+        </p>
+      </section>
+    )
+  }
 
   if (!data) {
     return (

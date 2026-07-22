@@ -35,6 +35,30 @@ export async function GET(request: Request) {
   const since = periodToInterval(period)
 
   try {
+    const tableCheck = await pool.query(
+      `SELECT EXISTS (SELECT FROM information_schema.tables WHERE table_name = 'page_views')`
+    )
+    const tableExists = tableCheck.rows[0]?.exists
+
+    if (!tableExists) {
+      const usersResult = await pool.query(`SELECT COUNT(*) as count FROM users`)
+      const subsResult = await pool.query(
+        `SELECT COUNT(*) as count FROM subscriptions WHERE status IN ('trialing', 'active')`
+      ).catch(() => ({ rows: [{ count: 0 }] }))
+
+      return NextResponse.json({
+        kpis: {
+          visitsToday: 0,
+          uniqueVisitors: 0,
+          totalVisits: 0,
+          totalUsers: Number(usersResult.rows[0].count),
+          activeSubscriptions: Number(subsResult.rows[0].count),
+        },
+        grouped: [],
+        daily: [],
+      })
+    }
+
     const todayResult = await pool.query(
       `SELECT COUNT(*) as count FROM page_views WHERE created_at >= NOW() - INTERVAL '1 day'`
     )
@@ -45,7 +69,7 @@ export async function GET(request: Request) {
     const usersResult = await pool.query(`SELECT COUNT(*) as count FROM users`)
     const subsResult = await pool.query(
       `SELECT COUNT(*) as count FROM subscriptions WHERE status IN ('trialing', 'active')`
-    )
+    ).catch(() => ({ rows: [{ count: 0 }] }))
 
     let groupColumn: string
     switch (group) {
